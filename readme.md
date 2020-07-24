@@ -1,6 +1,7 @@
 ## **DCP**: Dosage Compensation Analyses Pipeline using Snakemake.
 
 ![](https://img.shields.io/maintenance/yes/2020)
+[![](https://img.shields.io/github/license/rameshbalan/dcp)](https://github.com/rameshbalan/dcp/blob/master/LICENSE)
 
 Uses:
 [![orthofinder](https://img.shields.io/conda/dn/bioconda/orthofinder?label=orthofinder)](https://github.com/davidemms/OrthoFinder)
@@ -92,7 +93,7 @@ snakemake --cores 16 --use-singularity --use-conda
 
 ### (Expected) Releases.
 
-Current release is highlighted in bold font.  
+Current release is highlighted in bold font below and also is tagged in github.  
 - **&alpha;**  
 	- Modular workflow  
 	- Test on sample dataset  
