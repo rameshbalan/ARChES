@@ -54,6 +54,16 @@ __Rules Graph__
 	- Should be available in the `$PATH`
 	- The workflow was tested in singularity version `3.5.3`
 
+### Data Input.
+
+User-specific data and reference files can be configured in the `config.yml` file. For a complete analysis, the following files are needed.
+
+1. RNA-Seq reads
+2. Reference Protein file URL
+3. Reference GFF file URL
+4. Reference Orthodb file URL
+5. Dated Phylogenetic Tree
+
 ### Usage.
 
 ```bash
@@ -65,16 +75,6 @@ snakemake --cores 16 --use-singularity --use-conda -np
 snakemake --cores 16 --use-singularity --use-conda
 ```
 > Number of cores can be increased to reflect the compute resource available
-
-### Data Input.
-
-User-specific data and reference files can be configured in the `config.yml` file. For a complete analysis, the following files are needed.
-
-1. RNA-Seq reads
-2. Reference Protein file URL
-3. Reference GFF file URL
-4. Reference Orthodb file URL
-5. Dated Phylogenetic Tree
 
 ### Pipeline Output/ Directory Structure:
 
@@ -107,11 +107,11 @@ Current release is highlighted in bold font.
 
 See Wiki for further information.
 
-Citation:  
+### Citation:  
 
 Ramesh, Balan and Demuth, Jeff. "A General Framework for Dosage Compensation Analyses using Snakemake" (in prep).2020
 
-References:
+### References:
 
 1. [Köster, Johannes and Rahmann, Sven. “Snakemake - A scalable bioinformatics workflow engine”. Bioinformatics 2012.](https://academic.oup.com/bioinformatics/article/28/19/2520/290322)
 2. [Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome.](https://www.nature.com/articles/nbt.1883)
