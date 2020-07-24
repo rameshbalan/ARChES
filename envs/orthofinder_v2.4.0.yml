@@ -1,0 +1,62 @@
+name: ortho
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=0_gnu
+  - blast=2.5.0=hc0b0e79_3
+  - boost=1.73.0=py38hd103949_0
+  - boost-cpp=1.73.0=h7b93d67_2
+  - bzip2=1.0.8=h516909a_2
+  - ca-certificates=2020.6.20=hecda079_0
+  - certifi=2020.6.20=py38h32f6830_0
+  - diamond=0.9.14=h8b12597_3
+  - fastme=2.1.5=0
+  - fasttree=2.1.10=h516909a_4
+  - gawk=5.1.0=h516909a_0
+  - gettext=0.19.8.1=hc5be6a0_1002
+  - icu=67.1=he1b5a44_0
+  - iqtree=2.0.3=h176a8bc_0
+  - ld_impl_linux-64=2.34=h53a641e_7
+  - libblas=3.8.0=17_openblas
+  - libcblas=3.8.0=17_openblas
+  - libffi=3.2.1=he1b5a44_1007
+  - libgcc=7.2.0=h69d50b8_2
+  - libgcc-ng=9.2.0=h24d8f2e_2
+  - libgfortran-ng=7.5.0=hdf63c60_6
+  - libgomp=9.2.0=h24d8f2e_2
+  - libidn2=2.3.0=h516909a_0
+  - liblapack=3.8.0=17_openblas
+  - libopenblas=0.3.10=pthreads_hb3c22a3_2
+  - libstdcxx-ng=9.2.0=hdf63c60_2
+  - libunistring=0.9.10=h14c3975_0
+  - llvm-openmp=8.0.1=hc9558a2_0
+  - lz4-c=1.9.2=he1b5a44_1
+  - mafft=7.471=h516909a_0
+  - mcl=14.137=pl526h516909a_5
+  - mmseqs2=11.e1a1c=h2d02072_0
+  - muscle=3.8.1551=hc9558a2_5
+  - ncurses=6.2=he1b5a44_1
+  - numpy=1.19.0=py38h8854b6b_0
+  - openmp=8.0.1=0
+  - openssl=1.1.1g=h516909a_0
+  - orthofinder=2.4.0=0
+  - perl=5.26.2=h516909a_1006
+  - pip=20.1.1=py_1
+  - python=3.8.3=cpython_he5300dc_0
+  - python_abi=3.8=1_cp38
+  - raxml=8.2.12=h516909a_2
+  - readline=8.0=he28a2e2_2
+  - scipy=1.5.1=py38h18bccfc_0
+  - setuptools=49.2.0=py38h32f6830_0
+  - sqlite=3.32.3=hcee41ef_1
+  - tk=8.6.10=hed695b0_0
+  - wget=1.20.1=h22169c7_0
+  - wheel=0.34.2=py_1
+  - xz=5.2.5=h516909a_1
+  - zlib=1.2.11=h516909a_1006
+  - zstd=1.4.4=h6597ccf_3
+prefix: /home/balan/miniconda3/envs/ortho
+

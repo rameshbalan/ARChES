@@ -1,0 +1,5 @@
+sample	gender	replicate	species
+T_cast_F1	Female	1	T_cast
+T_cast_F2	Female	2	T_cast
+T_cast_M1	Male	1	T_cast
+T_cast_M2	Male	2	T_cast

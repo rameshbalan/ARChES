@@ -1,0 +1,5 @@
+sample	gender	replicate	species
+T_conf_F1	Female	1	T_conf
+T_conf_F2	Female	2	T_conf
+T_conf_M1	Male	1	T_conf
+T_conf_M2	Male	2	T_conf

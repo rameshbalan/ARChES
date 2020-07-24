@@ -1,0 +1,232 @@
+---
+title: "Report"  
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+    source_code: embed
+    orientation: rows
+    theme: paper
+params:
+  tree: "data/nogaps_tree_nogaps_treeannotator_ann.trees"
+  neo_species: "T_conf"
+  busco_fig: "results/busco_figure.png"
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+require("ggplot2")
+require("tidyverse")
+require("plotly")
+require("ape")
+require("flexdashboard")
+```
+
+Dosage Balance and Compensation
+=======================================================================
+
+Row {data-height=850}
+-----------------------------------------------------------------------
+
+
+### Dosage Balance Results
+
+The following graph shows the ratio of males to females expression profile for autosome, neo-X and X.
+
+```{r balance, echo=FALSE}
+dataFiles <- lapply(Sys.glob("../results/*_TMM_ann.txt"), read.table)
+all_species_df = data.frame()
+count <- 1
+for (file in dataFiles){
+  outfile_name <- paste0(strsplit(Sys.glob("../results/*_TMM_ann.txt")[count], ".txt")[1],"_out.png")
+  colnames(file) <- c("seq_id", "sample", "log2.TMM","gender","species","chrom_num","chrom_name", "og")
+  
+  # Find overall median expression 
+  file_median <- file %>%
+    summarise(med = median(log2.TMM, na.rm = T)) %>%
+    pull(med)
+  
+  # Find Autosome median expression in each species
+  autosome_median <- file %>%
+    filter(chrom_name == "Autosome") %>%
+    summarise(med = median(log2.TMM, na.rm = T)) %>%
+    pull(med)
+  
+  # Find median expression of X,Neo-X and autosome in each species
+  file <- file %>%
+    group_by(chrom_name) %>%
+    mutate(chrom_name_median=median(log2.TMM))
+  
+  # Scale expression of X,Neo-X and autosome by Autosome median expression in each species
+  file <- file %>%
+    mutate(scaled_per_species=log2.TMM/autosome_median)
+  
+  # Find male to female ratio.
+  file_gender <- split(file, file$gender)
+  file_male <-  as.data.frame(file_gender[2])
+  file_female <- as.data.frame(file_gender[1])
+  file_male$scaled_mfratio <- file_male$Male.scaled_per_species / file_female$Female.scaled_per_species
+  
+  # Find median SCALED expression of X,Neo-X and autosome in each species
+  file_male <- file_male %>%
+    group_by(Male.chrom_name) %>%
+    mutate(scaled_chrom_name_mfratio_median=median(scaled_mfratio))
+  
+  # Combine each species dataframe to all species dataframe.
+  all_species_df <- rbind(all_species_df,file_male)
+  
+  # Plot and save each species expression. This plot is mainly meant for dosage balance. 
+  ggplot(data = file_male[file_male$Male.chrom_name != "Un" & file_male$Male.chrom_name != "Unknown",],
+         aes(x=Male.chrom_name,
+             y=scaled_mfratio,
+             color=Male.chrom_name))+
+    coord_flip()+
+    geom_segment(aes(x = Male.chrom_name, xend = Male.chrom_name,
+                     y = median(scaled_mfratio), yend = scaled_chrom_name_mfratio_median),
+                 size = 0.8)+
+    geom_hline(aes(yintercept = median(scaled_mfratio)), 
+               color = "gray70", 
+               size = 0.6) +
+    stat_summary(fun = median, geom = "point", size = 5, alpha = 0.6) +
+    geom_jitter(size = 2, 
+                alpha = 0.25,
+                position = position_jitter(seed = 2019, width = 0.2))+
+    guides(color=FALSE)+
+    ggsave(outfile_name, width = 8, height = 5, units = "in")
+  count <- count + 1
+}
+
+balance <- ggplot(data = all_species_df[all_species_df$Male.chrom_name != "Un" & all_species_df$Male.chrom_name != "Unknown",],
+         aes(x=Male.chrom_name,
+             y=scaled_mfratio,
+             color=Male.chrom_name))+
+    coord_flip()+
+    geom_segment(aes(x = Male.chrom_name, xend = Male.chrom_name,
+                     y = median(scaled_mfratio), yend = scaled_chrom_name_mfratio_median),
+                 size = 0.8)+
+    geom_hline(aes(yintercept = median(scaled_mfratio)), 
+               color = "gray70", 
+               size = 0.6) +
+    stat_summary(fun = median, geom = "point", size = 5) +
+    geom_jitter(size = 2, 
+                alpha = 0.25,
+                position = position_jitter(seed = 2019, width = 0.2))+
+    xlab("Chromosome")+
+    ylab("Male to Female Expression Ratio in log2(TMM)")+
+    theme_minimal()+
+    theme(legend.position='none')+
+    facet_grid(rows = ~Male.species)
+ggplotly(balance)
+```
+
+### Dosage Compensation Weighted by Ancestral State
+
+The graph below shows the normalized, scaled and log transformed expression of X chromosome, Neo-X and the autosome. Here the weights for Anc-X are reciprocal to the distance from the common ancestor based on the in put time tree.
+
+```{r weigted, echo=FALSE}
+# Add chromosome category
+all_species_df$chrom_cat <- (ifelse(all_species_df$Male.species == "T_conf", "Neo-X", "Anc-X"))
+
+# Declare a datafrane for free and weights
+species_timetree_df <- data.frame()
+
+# Read the tree
+species_timetree <- read.nexus(params$tree)
+
+# Add species to the dataframe
+species_timetree_df  <- as.data.frame(species_timetree$tip.label)
+
+# Get the divergence time from the tree
+div_Time <- species_timetree$edge.length[species_timetree$edge[,2] <= Ntip(species_timetree)]
+
+# Add the divergence time to the dataframe
+species_timetree_df$divTime <- div_Time
+
+# Add headers to the dataframe
+colnames(species_timetree_df) <- c("species","divTime")
+
+# Get the divergence time from Neo-X species
+divTime_Neo_species <- species_timetree_df[species_timetree_df$species==params$neo_species,2]
+
+# Calculate relative weights based on divergence time
+species_timetree_df <- species_timetree_df %>%
+                          mutate(weights=(1-((divTime-divTime_Neo_species)/sum(divTime))))
+
+# Add relative weights to each species
+all_species_df$weights <- species_timetree_df$weights[match(all_species_df$Male.species,species_timetree_df$species)]
+
+# Calculate Weighted Expression by multiplying the relative weights with the scaled expression values
+all_species_df <- all_species_df %>%
+  group_by(Male.species) %>%
+  mutate(weighted_expression=scaled_mfratio*weights)
+
+# Calculate Median Weighted Expression for each orthogroup
+all_species_minus_T_conf_df <- all_species_df %>%
+  filter(Male.species != params$neo_species) %>%
+  group_by(Male.og) %>%
+  mutate(med_weighted_expression=median(weighted_expression))
+
+# Calculate Median Weighted Expression for each orthogroup
+T_conf_df <- all_species_df %>%
+  filter(Male.species == params$neo_species) %>%
+  group_by(Male.og) %>%
+  mutate(med_weighted_expression=median(weighted_expression))
+
+all_species_df <- rbind(all_species_minus_T_conf_df,T_conf_df)
+write.table(all_species_df,file = "../results/all_species_df_R.txt", sep="\t",row.names = F, col.names = F)
+
+# Create a ggplot object
+Weighted <- ggplot(all_species_df,
+       aes(x=chrom_cat,
+           y=weighted_expression,
+           fill=chrom_cat))+
+  geom_boxplot()+
+  xlab("Chromosome")+
+  ylab("Weighted Scaled log2(TMM)")+
+  guides(fill=F)+
+  theme(legend.position='none')+
+  theme_minimal()
+
+# Visualize the plot using plotly
+ggplotly(Weighted)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Expression Profile of Transcript in Neo-X vs Anc-X
+
+The graph below shows how the (weighted) expression of each gene/transcript/orthogroup in the Neo-X relates to the (weighted) median Anc-X expression 
+
+```{r exp,echo=FALSE}
+
+unique_OG_all_species_df <- all_species_df %>%
+  distinct(Male.og,chrom_cat,med_weighted_expression,Male.chrom_num)
+genes_in_neo_X <- ggplot(unique_OG_all_species_df,
+       aes(x=chrom_cat,
+           y=med_weighted_expression,
+           group=Male.og,
+           color=chrom_cat))+
+  geom_line(alpha=0.2,
+            color="black")+
+  geom_point(alpha=0.2)+
+  xlab("Chromosome")+
+  ylab("Scaled log2(TMM)")+
+  guides(color=F)+
+  theme(legend.position='none')+
+  theme_minimal()
+ggplotly(genes_in_neo_X)
+```
+
+
+BUSCO  
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### BUSCO Results
+
+The following graphs show the before and after of the clustering methods on the trinity transcriptome.
+
+```{r busco}
+knitr::include_graphics(params$busco_fig)
+```

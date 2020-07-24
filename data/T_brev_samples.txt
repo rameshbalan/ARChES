@@ -1,0 +1,5 @@
+sample	gender	replicate	species
+T_brev_F1	Female	1	T_brev
+T_brev_F2	Female	2	T_brev
+T_brev_M1	Male	1	T_brev
+T_brev_M2	Male	2	T_brev

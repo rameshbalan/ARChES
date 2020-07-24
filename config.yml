@@ -1,0 +1,17 @@
+
+
+samples: ["G_corn", "T_brev", "T_frem","T_conf","T_cast"]
+sex: ["M","F"]
+rep: [1,2]
+
+busco_prep:
+  ortho_db_url: https://busco-data.ezlab.org/v4/data/lineages/endopterygota_odb10.2019-11-20.tar.gz
+  ref_prot_url: https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/002/335/GCF_000002335.3_Tcas5.2/GCF_000002335.3_Tcas5.2_protein.faa.gz
+  ref_gff_url: https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/002/335/GCF_000002335.3_Tcas5.2/GCF_000002335.3_Tcas5.2_genomic.gff.gz
+
+orthologs_orthofinder:
+  path: results/proteomes
+
+report:
+  tree: "data/nogaps_tree_nogaps_treeannotator_ann.trees"
+  neo_species: "T_conf"
