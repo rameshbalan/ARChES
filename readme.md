@@ -106,7 +106,7 @@ Current release is highlighted in bold font below and also is tagged in github.
 - Release  
 	- Test using some other species dataset (_Drosophila_?)
 
-See Wiki for further information.
+See [Wiki](https://github.com/rameshbalan/dcp/wiki/Dosage-Compensation-Analyses-Pipeline-(DCP)) for further information.
 
 ### Citation:  
 
