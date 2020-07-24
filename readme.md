@@ -27,7 +27,8 @@ This repository contains a [snakemake](https://snakemake.readthedocs.io/en/stabl
 	- This step identifies Dosage Balance between males and females.
 4. Using a (given) dated phylogenetic tree of all the species in the analysis, (weighted) ancestral-X chromosome expression is compared against the neo-X chromosome.
 
-__Rules Graph__
+__Rules Graph__  
+
 ![](https://raw.githubusercontent.com/rameshbalan/rameshbalan.github.io/e8e4494c6c4f9f8bcc6b9b5479f9b983f8db89e3/files/DCA_rulegraph.svg)
 
 ### Dependencies.
@@ -106,13 +107,18 @@ Current release is highlighted in bold font.
 
 See Wiki for further information.
 
-Citation:
+Citation:  
+
+Ramesh, Balan and Demuth, Jeff. "A General Framework for Dosage Compensation Analyses using Snakemake" (in prep).2020
+
+References:
+
 1. [Köster, Johannes and Rahmann, Sven. “Snakemake - A scalable bioinformatics workflow engine”. Bioinformatics 2012.](https://academic.oup.com/bioinformatics/article/28/19/2520/290322)
 2. [Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome.](https://www.nature.com/articles/nbt.1883)
 3. [Patro, R., Duggal, G., Love, M. I., Irizarry, R. A., & Kingsford, C. (2017). Salmon provides fast and bias-aware quantification of transcript expression. Nature methods, 14(4), 417-419.](https://www.nature.com/articles/nmeth.4197)
 4. [Limin Fu, Beifang Niu, Zhengwei Zhu, Sitao Wu and Weizhong Li, CD-HIT: accelerated for clustering the next generation sequencing data. Bioinformatics, (2012), 28 (23): 3150-3152.](https://academic.oup.com/bioinformatics/article/28/23/3150/192160)
-5. [Haas, B., & Papanicolaou, A. J. G. S. (2016). TransDecoder (find coding regions within transcripts).](https://github.com/TransDecoder/TransDecoder/wiki)
-6.[Emms, D. M., & Kelly, S. (2019). OrthoFinder: phylogenetic orthology inference for comparative genomics. Genome biology, 20(1), 1-14.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1832-y)
+5. [Haas, B., & Papanicolaou, A. J. G. S. (2016). TransDecoder (find coding regions within transcripts).](https://github.com/TransDecoder/TransDecoder/wiki)  
+6. [Emms, D. M., & Kelly, S. (2019). OrthoFinder: phylogenetic orthology inference for comparative genomics. Genome biology, 20(1), 1-14.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1832-y)
 7. [Julien, P., Brawand, D., Soumillon, M., Necsulea, A., Liechti, A., Schütz, F., ... & Kaessmann, H. (2012). Mechanisms and evolutionary patterns of mammalian and avian dosage compensation. PLoS Biol, 10(5), e1001328.](https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001328)
 8. [Schield, D.R., Card, D.C., Hales, N.R., Perry, B.W., Pasquesi, G.M., Blackmon, H., Adams, R.H., Corbin, A.B., Smith, C.F., Ramesh, B. and Demuth, J.P., 2019. The origins and evolution of chromosomes, dosage compensation, and mechanisms underlying venom regulation in snakes. Genome research, 29(4), pp.590-601.](https://genome.cshlp.org/content/29/4/590.full.pdf)
 
