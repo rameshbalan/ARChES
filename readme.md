@@ -1,4 +1,4 @@
-## **DCP**: Dosage Compensation Analyses Pipeline using Snakemake.
+## **ARChES**: *A*ncestral *R*econstruction of *Ch*romosome *E*xpression *S*tates to analyze Dosage Compensation using Snakemake.
 
 ![](https://img.shields.io/maintenance/yes/2020)
 [![](https://img.shields.io/github/license/rameshbalan/dcp)](https://github.com/rameshbalan/dcp/blob/master/LICENSE)
