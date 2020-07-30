@@ -98,7 +98,8 @@ Current release is highlighted in bold font below and also is tagged in github.
 	- Modular workflow  
 	- Test on sample dataset  
 - &beta;  
-	- Parallelize BLAST in 2 bash scripts.
+	- Parallelize BLAST in 2 bash scripts. (or)
+	- Elimininate BLAST and annotate based on the Homology BLAST.
 	- Snakemake, Python and R Best Practices  
 		- Create Rules directory
 - Pre-Release  

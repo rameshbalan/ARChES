@@ -8,6 +8,9 @@ logs/
 data/ref_odb
 data/ref_protein.fasta*
 data/ref.gff
+report.html
+scripts/*.png
+scripts/*.jpg
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,r,git,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,r,git,linux
