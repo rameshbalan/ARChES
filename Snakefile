@@ -48,8 +48,8 @@ rule denovo:
         sample_name="{sample}"
     log:
         "logs/denovo_{sample}_log.txt"
-    container:
-        "docker://trinityrnaseq/trinityrnaseq:2.10.0"
+    conda:
+        "envs/trinity_v2.11.0.yml"
     shell:
         "(Trinity --seqType fq \
           --left {input.read1_M1},{input.read1_M2},{input.read1_F1},{input.read1_F2}  \
