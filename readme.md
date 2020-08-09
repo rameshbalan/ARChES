@@ -16,7 +16,6 @@ Uses:
 
 Depends: [![](https://img.shields.io/github/downloads/conda/conda/4.8.3/conda-4.8.3.tar.gz?label=conda)](https://docs.conda.io/en/latest/miniconda.html)
 [![snakemake](https://img.shields.io/conda/dn/bioconda/snakemake.svg?label=snakemake)](https://bioconda.github.io/recipes/snakemake/README.html)
-[![](https://img.shields.io/github/downloads-pre/hpcng/singularity/v3.5.3/singularity-3.5.3.tar.gz?label=Singularity)](https://sylabs.io/guides/3.5/user-guide/quick_start.html#quick-installation-steps)
 
 ### Summary
 
@@ -46,14 +45,14 @@ __Rules Graph__
 	mamba create -c conda-forge -c bioconda -n snakemake snakemake
 	```
 	- The snakemake workflow was created and tested in `5.19.3`
-- [singularity](https://sylabs.io/guides/3.5/user-guide/quick_start.html#quick-installation-steps)
+<!-- - [singularity](https://sylabs.io/guides/3.5/user-guide/quick_start.html#quick-installation-steps)
 	- singularity is available as a module in TACC and other HPCs.
 	 	```bash
 		# This command searches for available singularity version in TACC
 		module spider singularity
 		```
 	- Should be available in the `$PATH`
-	- The workflow was tested in singularity version `3.5.3`
+	- The workflow was tested in singularity version `3.5.3` -->
 
 ### Data Input.
 
@@ -71,9 +70,9 @@ User-specific data and reference files can be configured in the `config.yml` fil
 # Activate the snakemake conda environment
 conda activate snakemake
 # Do a dry run to verify the workflow and the jobs
-snakemake --cores 16 --use-singularity --use-conda -np
+snakemake --cores 16 --use-conda -np
 # Run the pipeline
-snakemake --cores 16 --use-singularity --use-conda
+snakemake --cores 16 --use-conda
 ```
 > Number of cores can be increased to reflect the compute resource available
 
@@ -123,4 +122,3 @@ Ramesh, Balan and Demuth, Jeff. "A General Framework for Dosage Compensation Ana
 6. [Emms, D. M., & Kelly, S. (2019). OrthoFinder: phylogenetic orthology inference for comparative genomics. Genome biology, 20(1), 1-14.](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1832-y)
 7. [Julien, P., Brawand, D., Soumillon, M., Necsulea, A., Liechti, A., Schütz, F., ... & Kaessmann, H. (2012). Mechanisms and evolutionary patterns of mammalian and avian dosage compensation. PLoS Biol, 10(5), e1001328.](https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001328)
 8. [Schield, D.R., Card, D.C., Hales, N.R., Perry, B.W., Pasquesi, G.M., Blackmon, H., Adams, R.H., Corbin, A.B., Smith, C.F., Ramesh, B. and Demuth, J.P., 2019. The origins and evolution of chromosomes, dosage compensation, and mechanisms underlying venom regulation in snakes. Genome research, 29(4), pp.590-601.](https://genome.cshlp.org/content/29/4/590.full.pdf)
-
