@@ -11,6 +11,7 @@ data/ref.gff
 report.html
 scripts/*.png
 scripts/*.jpg
+.DS_Store
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,r,git,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,r,git,linux
