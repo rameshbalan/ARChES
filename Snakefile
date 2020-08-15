@@ -12,7 +12,7 @@ import os
 import glob
 
 basedir = os.path.dirname("Snakefile")
-number_of_species = len(config["samples"])
+number_of_species = len(config["species"])
 
 if not os.path.exists('results') == True:
     os.makedirs(os.path.join(basedir, "results"))
@@ -31,49 +31,43 @@ if not os.path.exists('data/ref_odb') == True:
 rule all:
     input:
         "report.html"
+        # "results/annotated_blast_file.txt"
+        # expand("run_transdecoder_{species}_nr95/short_summary_transdecoder_{species}_nr95.txt", species=config["species"]),
 
 rule denovo:
     input:
-        read1_M1="data/{sample}_M1_R1.fq.gz",
-        read1_M2="data/{sample}_M2_R1.fq.gz",
-        read1_F1="data/{sample}_F1_R1.fq.gz",
-        read1_F2="data/{sample}_F2_R1.fq.gz",
-        read2_M1="data/{sample}_M1_R2.fq.gz",
-        read2_M2="data/{sample}_M2_R2.fq.gz",
-        read2_F1="data/{sample}_F1_R2.fq.gz",
-        read2_F2="data/{sample}_F2_R2.fq.gz"
+        "data/{species}_samples_trinity.txt"
     output:
-        "results/{sample}/trinity_out_dir/Trinity.fasta"
+        "results/{species}/trinity_out_dir/Trinity.fasta"
     params:
-        sample_name="{sample}"
+        sample_name="{species}"
     log:
-        "logs/denovo_{sample}_log.txt"
+        "logs/denovo_{species}_log.txt"
     conda:
         "envs/trinity_v2.11.0.yml"
     shell:
         "(Trinity --seqType fq \
-          --left {input.read1_M1},{input.read1_M2},{input.read1_F1},{input.read1_F2}  \
-          --right {input.read2_M1},{input.read2_M2},{input.read2_F1},{input.read2_F2} \
+          --samples_file {input} \
           --max_memory 8G --CPU {threads} \
           --output results/{params.sample_name}/trinity_out_dir) 2> {log}"
 
 rule rename_headers:
     input:
-        "results/{sample}/trinity_out_dir/Trinity.fasta"
+        "results/{species}/trinity_out_dir/Trinity.fasta"
     output:
-        "results/{sample}/trinity_out_dir/{sample}.fasta"
+        "results/{species}/trinity_out_dir/{species}.fasta"
     params:
-        sample_name="{sample}"
+        sample_name="{species}"
     conda:
         "envs/busco_v3.0.2.yml"
     log:
-        "logs/rename_headers_{sample}_log.txt"
+        "logs/rename_headers_{species}_log.txt"
     shell:
         "(sed s/TRINITY/{params.sample_name}/g {input} > {output}) 2> {log}"
 
-rule busco_prep:
+rule ref_prep:
     input:
-        expand("results/{samp}/trinity_out_dir/{samp}.fasta", samp=config["samples"])
+        expand("results/{species}/trinity_out_dir/{species}.fasta", species=config["species"])
     output:
         dir=directory("data/ref_odb"),
         prot="data/ref_protein.fasta",
@@ -98,16 +92,16 @@ rule busco_prep:
 
 rule trinity_busco:
     input:
-        fasta = "results/{sample}/trinity_out_dir/{sample}.fasta",
+        fasta = "results/{species}/trinity_out_dir/{species}.fasta",
         busco_lineage = "data/ref_odb"
     output:
-        "run_busco_trinity_{sample}/short_summary_busco_trinity_{sample}.txt"
+        "run_busco_trinity_{species}/short_summary_busco_trinity_{species}.txt"
     params:
-        sample_name="busco_trinity_{sample}"
+        sample_name="busco_trinity_{species}"
     conda:
         "envs/busco_v3.0.2.yml"
     log:
-        "logs/trinity_busco_{sample}_log.txt"
+        "logs/trinity_busco_{species}_log.txt"
     shell:
         """
         (run_BUSCO.py -i {input.fasta} \
@@ -120,28 +114,28 @@ rule trinity_busco:
 
 rule transdecoder_longorfs:
     input:
-        "results/{sample}/trinity_out_dir/{sample}.fasta"
+        "results/{species}/trinity_out_dir/{species}.fasta"
     output:
-        "{sample}_transdecoder/longest_orfs.pep"
+        "{species}_transdecoder/longest_orfs.pep"
     params:
-        "{sample}_transdecoder"
+        "{species}_transdecoder"
     conda:
         "envs/transdecoder_v5.5.0.yml"
     log:
-        "logs/transdecoder_longorfs_{sample}_log.txt"
+        "logs/transdecoder_longorfs_{species}_log.txt"
     shell:
         "(TransDecoder.LongOrfs -t {input} -O {params}) 2> {log}"
 
 rule AddHomologyBLASTp:
     input:
-        pep="{sample}_transdecoder/longest_orfs.pep",
+        pep="{species}_transdecoder/longest_orfs.pep",
         ref_prot="data/ref_protein.fasta"
     output:
-        "results/blastp_{sample}.outfmt6"
+        "results/blastp_{species}.outfmt6"
     conda:
         "envs/busco_v3.0.2.yml"
     log:
-        "logs/AddHomologyBLASTp_{sample}_log.txt"
+        "logs/AddHomologyBLASTp_{species}_log.txt"
     shell:
         """
         (blastp -query {input.pep} \
@@ -154,17 +148,17 @@ rule AddHomologyBLASTp:
 
 rule transdecoder_predict_aa:
     input:
-        fasta="results/{sample}/trinity_out_dir/{sample}.fasta",
-        blastp="results/blastp_{sample}.outfmt6"
+        fasta="results/{species}/trinity_out_dir/{species}.fasta",
+        blastp="results/blastp_{species}.outfmt6"
     output:
-        "{sample}.fasta.transdecoder.cds",
-        "{sample}.fasta.transdecoder.pep"
+        "{species}.fasta.transdecoder.cds",
+        "{species}.fasta.transdecoder.pep"
     params:
-        "{sample}_transdecoder"
+        "{species}_transdecoder"
     conda:
         "envs/transdecoder_v5.5.0.yml"
     log:
-        "logs/transdecoder_predict_aa_{sample}_log.txt"
+        "logs/transdecoder_predict_aa_{species}_log.txt"
     shell:
         """
         (TransDecoder.Predict -t {input.fasta} \
@@ -175,43 +169,45 @@ rule transdecoder_predict_aa:
 
 rule cluster_cdhitest:
     input:
-        "{sample}.fasta.transdecoder.cds"
+        "{species}.fasta.transdecoder.cds"
     output:
-        "results/{sample}_nr95.fasta"
+        "results/{species}_nr95.fasta"
+    params:
+        config["cd_hit_threshold"]
     conda:
         "envs/cd-hit_v4.8.1.yml"
     log:
-        "logs/cluster_cdhitest_{sample}_log.txt"
+        "logs/cluster_cdhitest_{species}_log.txt"
     shell:
-        "(cd-hit-est -i {input} -o {output} -c 0.95) 2> {log}"
+        "(cd-hit-est -i {input} -o {output} -c {params}) 2> {log}"
 
 rule nr95_transdecoder_longorfs:
     input:
-        "results/{sample}_nr95.fasta"
+        "results/{species}_nr95.fasta"
     output:
-        "{sample}_nr95_transdecoder/longest_orfs.pep"
+        "{species}_nr95_transdecoder/longest_orfs.pep"
     params:
-        "{sample}_nr95_transdecoder"
+        "{species}_nr95_transdecoder"
     conda:
         "envs/transdecoder_v5.5.0.yml"
     log:
-        "logs/nr95_transdecoder_longorfs_{sample}_log.txt"
+        "logs/nr95_transdecoder_longorfs_{species}_log.txt"
     shell:
         "(TransDecoder.LongOrfs -t {input} -O {params}) 2> {log}"
 
 rule nr95_transdecoder_predict_aa:
     input:
-        fasta="results/{sample}_nr95.fasta",
-        pep="{sample}_nr95_transdecoder/longest_orfs.pep"
+        fasta="results/{species}_nr95.fasta",
+        pep="{species}_nr95_transdecoder/longest_orfs.pep"
     output:
-        "{sample}_nr95.fasta.transdecoder.cds",
-        "{sample}_nr95.fasta.transdecoder.pep"
+        "{species}_nr95.fasta.transdecoder.cds",
+        "{species}_nr95.fasta.transdecoder.pep"
     params:
-        "{sample}_nr95_transdecoder"
+        "{species}_nr95_transdecoder"
     conda:
         "envs/transdecoder_v5.5.0.yml"
     log:
-        "logs/nr95_transdecoder_predict_aa_{sample}_log.txt"
+        "logs/nr95_transdecoder_predict_aa_{species}_log.txt"
     shell:
         """
         (TransDecoder.Predict -t {input.fasta} \
@@ -221,17 +217,17 @@ rule nr95_transdecoder_predict_aa:
 
 rule nr95_clean_transdecoder_predict_aa:
     input:
-        cds="{sample}_nr95.fasta.transdecoder.cds",
-        pep="{sample}_nr95.fasta.transdecoder.pep"
+        cds="{species}_nr95.fasta.transdecoder.cds",
+        pep="{species}_nr95.fasta.transdecoder.pep"
     output:
-        "results/{sample}_nr95.fasta.transdecoder.cds",
-        "results/proteomes/{sample}_nr95_pep.fasta"
+        "results/{species}_nr95.fasta.transdecoder.cds",
+        "results/proteomes/{species}_nr95_pep.fasta"
     params:
-        "results/proteomes/{sample}_nr95_pep.fasta"
+        "results/proteomes/{species}_nr95_pep.fasta"
     conda:
         "envs/transdecoder_v5.5.0.yml"
     log:
-        "logs/nr95_clean_transdecoder_predict_aa_{sample}_log.txt"
+        "logs/nr95_clean_transdecoder_predict_aa_{species}_log.txt"
     shell:
         """
         (cp {input.cds} results) 2> {log}
@@ -240,17 +236,17 @@ rule nr95_clean_transdecoder_predict_aa:
 
 rule transdecoder_busco:
     input:
-        trinity=expand("run_busco_trinity_{species}/short_summary_busco_trinity_{species}.txt",species=config["samples"]),
-        fasta="results/{sample}_nr95.fasta.transdecoder.cds",
+        trinity=expand("run_busco_trinity_{species}/short_summary_busco_trinity_{species}.txt",species=config["species"]),
+        fasta="results/{species}_nr95.fasta.transdecoder.cds",
         busco_lineage = "data/ref_odb"
     output:
-        "run_transdecoder_{sample}_nr95/short_summary_transdecoder_{sample}_nr95.txt"
+        "run_transdecoder_{species}_nr95/short_summary_transdecoder_{species}_nr95.txt"
     params:
-        "transdecoder_{sample}_nr95"
+        "transdecoder_{species}_nr95"
     conda:
         "envs/busco_v3.0.2.yml"
     log:
-        "logs/transdecoder_busco_{sample}_log.txt"
+        "logs/transdecoder_busco_{species}_log.txt"
     shell:
         """
         (run_BUSCO.py -i {input.fasta} \
@@ -263,40 +259,44 @@ rule transdecoder_busco:
 
 rule transcriptome_index:
     input:
-        fasta="results/{sample}_nr95.fasta.transdecoder.cds"
+        fasta="results/{species}_nr95.fasta.transdecoder.cds"
     output:
-        dir = directory("results/{sample}_nr95")
+        "results/{species}_nr95_index/versionInfo.json"
+    params:
+        "results/{species}_nr95_index"
     conda:
         "envs/salmon_v1.2.1.yml"
     log:
-        "logs/transcriptome_index_{sample}_log.txt"
+        "logs/transcriptome_index_{species}_log.txt"
     shell:
-        "(salmon index -t {input.fasta} -i {output.dir}) 2> {log}"
+        "(salmon index -t {input.fasta} -i {params}) 2> {log}"
 
 rule quantify_salmon:
     input:
-        index=rules.transcriptome_index.output.dir,
-        read1="data/{sample}_{sex}{rep}_R1.fq.gz",
-        read2="data/{sample}_{sex}{rep}_R2.fq.gz"
+        index_check=expand("results/{species}_nr95_index/versionInfo.json",species=config["species"]),
+        read1="data/{sample}_R1.fq.gz",
+        read2="data/{sample}_R2.fq.gz"
     output:
-        "results/quants/{sample}_{sex}{rep}/quant.sf"
+        "results/quants/{sample}/quant.sf"
     params:
-        "{sample}_{sex}{rep}"
+        samplename="{sample}",
+        index=lambda wildcards: \
+                    "results/"+config["samples_species"][wildcards.sample]+"_nr95_index"
     conda:
         "envs/salmon_v1.2.1.yml"
     log:
-        "logs/quantify_salmon_{sample}_{sex}{rep}_log.txt"
+        "logs/quantify_salmon_{sample}_log.txt"
     shell:
-        "(salmon quant -i {input.index} -l IU \
+        "(salmon quant -i {params.index} -l IU \
          -1 {input.read1} \
          -2 {input.read2} \
          -p {threads} \
          --validateMappings \
-         -o results/quants/{params}) 2> {log}"
+         -o results/quants/{params.samplename}) 2> {log}"
 
 rule orthologs_orthofinder:
     input:
-        expand("results/proteomes/{species}_nr95_pep.fasta",species=config["samples"])
+        expand("results/proteomes/{species}_nr95_pep.fasta",species=config["species"])
     output:
         dir=directory("results/proteomes/OrthoFinder")
     params:
@@ -308,15 +308,16 @@ rule orthologs_orthofinder:
     shell:
         "(orthofinder -f {params} -t {threads}) 2> {log}"
 
-
 rule annotate_orthofinder:
     input:
         ortho_dir=rules.orthologs_orthofinder.output.dir,
         ref_gff="data/ref.gff",
         ref_prot="data/ref_protein.fasta"
     params:
-        species_count=str(number_of_species)
-        # dir=glob.glob("results/proteomes/OrthoFinder/Results_*")[0]
+        species_count=str(number_of_species),
+        neox=config["annotate_orthofinder"]["neox"],
+        x=config["annotate_orthofinder"]["x"],
+        un=config["annotate_orthofinder"]["un"]
     output:
         "results/annotated_blast_file.txt"
     conda:
@@ -327,21 +328,22 @@ rule annotate_orthofinder:
         """
         (python3 scripts/pull_common_orthogroups.py {params.species_count} {input.ortho_dir}) 2> {log}
         (bash scripts/blast_common_orthogroups.sh {input.ref_prot} {input.ortho_dir} {threads}) 2> {log}
-        (bash scripts/annotate_all_OG.sh {input.ref_gff} {output}) 2> {log}
+        (bash scripts/annotate_all_OG.sh {input.ref_gff} {output} {params.neox} {params.x} {params.un}) 2> {log}
         """
+
 
 rule TMM_and_annotate:
     input:
-        sample="data/{sample}_samples.txt",
-        quant_files=expand("results/quants/{sample}_{sex}{rep}/quant.sf",sample=config["samples"],sex=config["sex"], rep=config["rep"]),
+        sample="data/{species}_samples.txt",
+        quant_files=expand("results/quants/{sample}/quant.sf",sample=config["samples"]),
         blast="results/annotated_blast_file.txt"
     output:
-        TMM="results/{sample}_TMM.txt",
-        ann_TMM="results/{sample}_TMM_ann.txt"
+        TMM="results/{species}_TMM.txt",
+        ann_TMM="results/{species}_TMM_ann.txt"
     conda:
         "envs/deseq2_v1.28_edgeR_v3.30.yml"
     log:
-        "logs/TMM_and_annotate_{sample}_log.txt"
+        "logs/TMM_and_annotate_{species}_log.txt"
     shell:
         """
         (Rscript scripts/rawcounts_and_TMM.R -f {input.sample} -o {output.TMM}) 2> {log}
@@ -350,7 +352,7 @@ rule TMM_and_annotate:
 
 rule plot_busco:
     input:
-        transdecoder_busco=expand("run_transdecoder_{sample}_nr95/short_summary_transdecoder_{sample}_nr95.txt",sample=config["samples"])
+        transdecoder_busco=expand("run_transdecoder_{species}_nr95/short_summary_transdecoder_{species}_nr95.txt",species=config["species"])
     params:
         "results/busco"
     output:
@@ -367,7 +369,7 @@ rule plot_busco:
 
 rule report:
     input:
-        ann_TMM=expand("results/{sample}_TMM_ann.txt",sample=config["samples"]),
+        ann_TMM=expand("results/{species}_TMM_ann.txt",species=config["species"]),
         busco_fig='results/busco/busco_figure.png'
     params:
         tree=os.path.abspath(config["report"]["tree"]),
@@ -391,4 +393,3 @@ rule report:
         tree='{params.tree}'), \
         output_file='../report.html')") 2> {log}
         """
-

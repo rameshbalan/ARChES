@@ -1,8 +1,37 @@
 
 
-samples: ["G_corn", "T_brev", "T_frem","T_conf","T_cast"]
-sex: ["M","F"]
-rep: [1,2]
+species: ["G_corn", "T_brev","T_conf","T_cast", "T_frem"]
+
+samples: ["G_corn_M1","G_corn_M2","G_corn_F1","G_corn_F2",
+"T_brev_M1","T_brev_M2","T_brev_F1","T_brev_F2",
+"T_conf_M1","T_conf_M2","T_conf_F1","T_conf_F2",
+"T_cast_M1","T_cast_M2","T_cast_F1","T_cast_F2",
+"T_frem_M1","T_frem_M2","T_frem_F1","T_frem_F2"]
+
+samples_species: {
+    "G_corn_M1": "G_corn",
+    "G_corn_M2": "G_corn",
+    "G_corn_F1": "G_corn",
+    "G_corn_F2": "G_corn",
+    "T_brev_M1": "T_brev",
+    "T_brev_M2": "T_brev",
+    "T_brev_F1": "T_brev",
+    "T_brev_F2": "T_brev",
+    "T_conf_M1": "T_conf",
+    "T_conf_M2": "T_conf",
+    "T_conf_F1": "T_conf",
+    "T_conf_F2": "T_conf",
+    "T_cast_M1": "T_cast",
+    "T_cast_M2": "T_cast",
+    "T_cast_F1": "T_cast",
+    "T_cast_F2": "T_cast",
+    "T_frem_M1": "T_frem",
+    "T_frem_M2": "T_frem",
+    "T_frem_F1": "T_frem",
+    "T_frem_F2": "T_frem"
+    }
+
+cd_hit_threshold: 0.95
 
 busco_prep:
   ortho_db_url: https://busco-data.ezlab.org/v4/data/lineages/endopterygota_odb10.2019-11-20.tar.gz
@@ -11,6 +40,11 @@ busco_prep:
 
 orthologs_orthofinder:
   path: results/proteomes
+
+annotate_orthofinder:
+  neox: ["LG2"]
+  x: ["LGX"]
+  un: ["MT","Unknown"]
 
 report:
   tree: "data/nogaps_tree_nogaps_treeannotator_ann.trees"

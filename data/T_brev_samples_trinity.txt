@@ -1,0 +1,4 @@
+Male	M1	data/T_brev_M1_R1.fq.gz	data/T_brev_M1_R2.fq.gz
+Male	M2	data/T_brev_M2_R1.fq.gz	data/T_brev_M2_R2.fq.gz
+Female	F1	data/T_brev_F1_R1.fq.gz	data/T_brev_F1_R2.fq.gz
+Female	F2	data/T_brev_F2_R1.fq.gz	data/T_brev_F2_R2.fq.gz

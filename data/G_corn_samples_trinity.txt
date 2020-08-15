@@ -1,0 +1,4 @@
+Male	M1	data/G_corn_M1_R1.fq.gz	data/G_corn_M1_R2.fq.gz
+Male	M2	data/G_corn_M2_R1.fq.gz	data/G_corn_M2_R2.fq.gz
+Female	F1	data/G_corn_F1_R1.fq.gz	data/G_corn_F1_R2.fq.gz
+Female	F2	data/G_corn_F2_R1.fq.gz	data/G_corn_F2_R2.fq.gz

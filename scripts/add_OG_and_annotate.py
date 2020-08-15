@@ -3,11 +3,17 @@
 import argparse
 
 
-parser = argparse.ArgumentParser(description='Using the reference transcriptome hits, this script adds chromosome number/name to each orthogroup')
-parser.add_argument("GFF",type=str,help='Path to the reference gff file to parse.\
+parser = argparse.ArgumentParser(description='Using the reference transcriptome hits, this script adds chromosome number/name to each orthogroup using reference GFF file')
+parser.add_argument("--GFF",type=str,help='Path to the reference gff file to parse.\
 	Example: ~/Dosage_Comp/data/T_cast_ref.gff')
-parser.add_argument("FILE",type=str,help='Path to BLASTed Orthogroup file to be annotated\
+parser.add_argument("--FILE",type=str,help='Path to BLASTed Orthogroup file to be annotated\
 									Example: ~/Dosage_Comp/results/proteomes/Results_Jul05')
+parser.add_argument("--neox",nargs='+',dest='neox_list',type=str,help='Name of Neo-X chromosome(s) ortholog from the reference gff.  \
+	Example Usage: --neox LG2. Here LG2 chromosome in the reference species is the Neo-X chromosome.')
+parser.add_argument("--x",type=str,dest='x_list',help='Name of X chromosome from the reference gff.\
+	Example Usage: --x LGX.')
+parser.add_argument("--un",type=str,nargs='+',dest='un_list',help='Name of mitochondria and unknown/unannotated chromsome from the reference gff.\
+	Example Usage: --un MT --un Unknown')
 
 args = parser.parse_args()
 
@@ -23,22 +29,22 @@ with open(args.GFF, 'r') as gff:
 					chrom = split_line[8].rstrip().split("Name=")[1].split(";")[0]
 					chromosome_dict[split_line[0].rstrip()] = [chrom.rstrip()]
 					# prot_dict[prot] = [chrom.rstrip()]
-					if chrom == "LG2":
+					if chrom in args.neox_list:
 						chromosome_dict[split_line[0].rstrip()].append("Neo-X")
-					elif chrom == "LGX":
+					elif chrom in args.x_list:
 						chromosome_dict[split_line[0].rstrip()].append("X")
-					elif chrom == "Unknown" or chrom == "MT":
+					elif chrom in args.un_list:
 						chromosome_dict[split_line[0].rstrip()].append("Un")
 					else:
 						chromosome_dict[split_line[0].rstrip()].append("Autosome")
 				except IndexError:
 					chrom = split_line[8].rstrip().split("linkage-group=")[1].split(";")[0]
 					chromosome_dict[split_line[0].rstrip()] = [chrom.rstrip()]
-					if chrom == "LG2":
+					if chrom in args.neox_list:
 						chromosome_dict[split_line[0].rstrip()].append("Neo-X")
-					elif chrom == "LGX":
+					elif chrom in args.x_list:
 						chromosome_dict[split_line[0].rstrip()].append("X")
-					elif chrom == "Unknown" or chrom == "MT":
+					elif chrom in args.un_list:
 						chromosome_dict[split_line[0].rstrip()].append("Un")
 					else:
 						chromosome_dict[split_line[0].rstrip()].append("Autosome")
