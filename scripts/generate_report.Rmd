@@ -18,112 +18,126 @@ require("tidyverse")
 require("plotly")
 require("ape")
 require("flexdashboard")
+require("rcompanion")
 ```
 
 Dosage Balance and Compensation
 =======================================================================
 
-Row {data-height=850}
+Row {data-height=650}{.tabset .tabset-fade}
 -----------------------------------------------------------------------
 
 
-### Dosage Balance Results
+### Dosage Balance Results of X chromosome
 
-The following graph shows the ratio of males to females expression profile for autosome, neo-X and X.
+<!-- The following graph shows the ratio of X to Autosome expression profile for males and females. -->
 
-```{r balance, echo=FALSE}
+```{r balance, echo=FALSE, fig.height=5, fig.width=8}
 dataFiles <- lapply(Sys.glob("../results/*_TMM_ann.txt"), read.table)
 all_species_df = data.frame()
 count <- 1
 for (file in dataFiles){
-  outfile_name <- paste0(strsplit(Sys.glob("../results/*_TMM_ann.txt")[count], ".txt")[1],"_out.png")
-  colnames(file) <- c("seq_id", "sample", "log2.TMM","gender","species","chrom_num","chrom_name", "og")
-  
-  # Find overall median expression 
-  file_median <- file %>%
-    summarise(med = median(log2.TMM, na.rm = T)) %>%
-    pull(med)
-  
+  # file <- dataFiles[[1]]
+  colnames(file) <- c("seq_id", "sample", "TMM","gender","species","chrom_num","chrom_name", "og")
+  file <- file[file$chrom_name != "Unknown" & file$chrom_name != "Un",]
   # Find Autosome median expression in each species
   autosome_median <- file %>%
     filter(chrom_name == "Autosome") %>%
-    summarise(med = median(log2.TMM, na.rm = T)) %>%
+    summarise(med = median(TMM, na.rm = T)) %>%
     pull(med)
   
   # Find median expression of X,Neo-X and autosome in each species
   file <- file %>%
     group_by(chrom_name) %>%
-    mutate(chrom_name_median=median(log2.TMM))
+    mutate(chrom_name_median=median(TMM))
   
-  # Scale expression of X,Neo-X and autosome by Autosome median expression in each species
   file <- file %>%
-    mutate(scaled_per_species=log2.TMM/autosome_median)
-  
-  # Find male to female ratio.
-  file_gender <- split(file, file$gender)
-  file_male <-  as.data.frame(file_gender[2])
-  file_female <- as.data.frame(file_gender[1])
-  file_male$scaled_mfratio <- file_male$Male.scaled_per_species / file_female$Female.scaled_per_species
-  
-  # Find median SCALED expression of X,Neo-X and autosome in each species
-  file_male <- file_male %>%
-    group_by(Male.chrom_name) %>%
-    mutate(scaled_chrom_name_mfratio_median=median(scaled_mfratio))
+  filter(chrom_name == "Neo-X" | chrom_name == "X") %>%
+  group_by(chrom_name,gender) %>%
+  mutate(X_AA_ratio=log2(TMM/autosome_median))
   
   # Combine each species dataframe to all species dataframe.
-  all_species_df <- rbind(all_species_df,file_male)
-  
-  # Plot and save each species expression. This plot is mainly meant for dosage balance. 
-  ggplot(data = file_male[file_male$Male.chrom_name != "Un" & file_male$Male.chrom_name != "Unknown",],
-         aes(x=Male.chrom_name,
-             y=scaled_mfratio,
-             color=Male.chrom_name))+
-    coord_flip()+
-    geom_segment(aes(x = Male.chrom_name, xend = Male.chrom_name,
-                     y = median(scaled_mfratio), yend = scaled_chrom_name_mfratio_median),
-                 size = 0.8)+
-    geom_hline(aes(yintercept = median(scaled_mfratio)), 
-               color = "gray70", 
-               size = 0.6) +
-    stat_summary(fun = median, geom = "point", size = 5, alpha = 0.6) +
-    geom_jitter(size = 2, 
-                alpha = 0.25,
-                position = position_jitter(seed = 2019, width = 0.2))+
-    guides(color=FALSE)+
-    ggsave(outfile_name, width = 8, height = 5, units = "in")
+  all_species_df <- rbind(as.data.frame(all_species_df),as.data.frame(file))
   count <- count + 1
 }
 
-balance <- ggplot(data = all_species_df[all_species_df$Male.chrom_name != "Un" & all_species_df$Male.chrom_name != "Unknown",],
-         aes(x=Male.chrom_name,
-             y=scaled_mfratio,
-             color=Male.chrom_name))+
-    coord_flip()+
-    geom_segment(aes(x = Male.chrom_name, xend = Male.chrom_name,
-                     y = median(scaled_mfratio), yend = scaled_chrom_name_mfratio_median),
-                 size = 0.8)+
-    geom_hline(aes(yintercept = median(scaled_mfratio)), 
-               color = "gray70", 
-               size = 0.6) +
-    stat_summary(fun = median, geom = "point", size = 5) +
-    geom_jitter(size = 2, 
-                alpha = 0.25,
-                position = position_jitter(seed = 2019, width = 0.2))+
-    xlab("Chromosome")+
-    ylab("Male to Female Expression Ratio in log2(TMM)")+
-    theme_minimal()+
-    theme(legend.position='none')+
-    facet_grid(rows = ~Male.species)
-ggplotly(balance)
+plot_data_x <- groupwiseMedian(X_AA_ratio ~ species + gender,
+                             data = all_species_df[all_species_df$chrom_name == "X",],
+                             bca = FALSE,
+                             conf = 0.95,
+                             percentile = TRUE)
+plot_data_x$species_gender <- paste(plot_data_x$species,plot_data_x$gender)
+
+plot_data_neox <- groupwiseMedian(X_AA_ratio ~ species + gender,
+                               data = all_species_df[all_species_df$chrom_name == "Neo-X",],
+                               bca = FALSE,
+                               conf = 0.95,
+                               percentile = TRUE)
+plot_data_neox$species_gender <- paste(plot_data_neox$species,plot_data_neox$gender)
+
+balance <- ggplot(plot_data_x, aes(x=Median, y=species_gender,xmin=Percentile.lower,xmax=Percentile.upper, color=gender)) + 
+  # geom_boxplot() +
+  geom_point(aes(size=1))+
+  scale_colour_manual(name="",  
+                      values = c("Male"="#E69F00",
+                                 "Female" = "#0072B2"))+
+  geom_errorbarh(height = 0.01)+
+  geom_vline(aes(xintercept = -1)) +
+  geom_vline(aes(xintercept = 1)) +
+  guides(fill=FALSE) + 
+  coord_cartesian(xlim = c(-2,2))+
+  guides(size=F)+
+  xlab("log2(X to Autosome) Ratio") +
+  ylab("Species")+
+  labs(color = "Gender")+
+  facet_wrap(~species,nrow = 5, scales="free_y", strip.position = "left")+
+  theme_minimal()+
+  theme(axis.text.y=element_blank(),
+        axis.text.x=element_text(size = 12),
+        axis.ticks.y=element_blank(),
+        strip.text.y = element_text(size = 14, angle = 180),
+        axis.title = element_text(size = 14))
+# ggplotly(balance)
+balance
 ```
+
+### Dosage Balance Results of Neo-X chromosome
+
+```{r neoxbalance,echo=FALSE, fig.height=5, fig.width=8}
+neobalance <- ggplot(plot_data_neox, aes(x=Median, y=species_gender,xmin=Percentile.lower,xmax=Percentile.upper, color=gender)) + 
+  # geom_boxplot() +
+  geom_point(aes(size=1))+
+  scale_colour_manual(name="",  
+                      values = c("Male"="#E69F00",
+                                 "Female" = "#0072B2"))+
+  geom_errorbarh(height = 0.01)+
+  geom_vline(aes(xintercept = -1)) +
+  geom_vline(aes(xintercept = 1)) +
+  guides(fill=FALSE) + 
+  coord_cartesian(xlim = c(-2,2))+
+  guides(size=F)+
+  xlab("log2(Neo-X to Autosome) Ratio") +
+  ylab("Species")+
+  labs(color = "Gender")+
+  facet_wrap(~species,nrow = 5, scales="free_y", strip.position = "left")+
+  theme_minimal()+
+  theme(axis.text.y=element_blank(),
+        axis.text.x=element_text(size = 12),
+        axis.ticks.y=element_blank(),
+        strip.text.y = element_text(size = 14, angle = 180),
+        axis.title = element_text(size = 14))
+# ggplotly(neobalance)
+neobalance
+```
+
+<!-- The above graph shows the ratio of Neo-X to Autosome expression profile for males and females. -->
 
 ### Dosage Compensation Weighted by Ancestral State
 
-The graph below shows the normalized, scaled and log transformed expression of X chromosome, Neo-X and the autosome. Here the weights for Anc-X are reciprocal to the distance from the common ancestor based on the in put time tree.
 
-```{r weigted, echo=FALSE}
+```{r weigted, echo=FALSE, fig.height=5, fig.width=8}
 # Add chromosome category
-all_species_df$chrom_cat <- (ifelse(all_species_df$Male.species == "T_conf", "Neo-X", "Anc-X"))
+all_species_df$chrom_cat <- (ifelse(all_species_df$species == params$neo_species, "Neo-X", "Anc-X"))
 
 # Declare a datafrane for free and weights
 species_timetree_df <- data.frame()
@@ -131,91 +145,118 @@ species_timetree_df <- data.frame()
 # Read the tree
 species_timetree <- read.nexus(params$tree)
 
-# Add species to the dataframe
-species_timetree_df  <- as.data.frame(species_timetree$tip.label)
+# Dist between any two species
+t <- as.data.frame(cophenetic.phylo(species_timetree))
 
-# Get the divergence time from the tree
-div_Time <- species_timetree$edge.length[species_timetree$edge[,2] <= Ntip(species_timetree)]
-
-# Add the divergence time to the dataframe
-species_timetree_df$divTime <- div_Time
+# Dist between any species to neo-x species
+species_timetree_df <- gather(t[params$neo_species,])
 
 # Add headers to the dataframe
-colnames(species_timetree_df) <- c("species","divTime")
-
-# Get the divergence time from Neo-X species
-divTime_Neo_species <- species_timetree_df[species_timetree_df$species==params$neo_species,2]
+colnames(species_timetree_df) <- c("species","divTime_to_neo")
 
 # Calculate relative weights based on divergence time
 species_timetree_df <- species_timetree_df %>%
-                          mutate(weights=(1-((divTime-divTime_Neo_species)/sum(divTime))))
+  mutate(weights = 1- (divTime_to_neo/sum(divTime_to_neo)))
 
-# Add relative weights to each species
-all_species_df$weights <- species_timetree_df$weights[match(all_species_df$Male.species,species_timetree_df$species)]
+# Add weights column to all_species_df
+all_species_df$weights <- species_timetree_df$weights [match(all_species_df$species,species_timetree_df$species)]
 
 # Calculate Weighted Expression by multiplying the relative weights with the scaled expression values
 all_species_df <- all_species_df %>%
-  group_by(Male.species) %>%
-  mutate(weighted_expression=scaled_mfratio*weights)
+  group_by(species) %>%
+  mutate(weighted_expression=TMM*weights)
 
 # Calculate Median Weighted Expression for each orthogroup
 all_species_minus_T_conf_df <- all_species_df %>%
-  filter(Male.species != params$neo_species) %>%
-  group_by(Male.og) %>%
+  filter(species != params$neo_species) %>%
+  group_by(og) %>%
   mutate(med_weighted_expression=median(weighted_expression))
 
 # Calculate Median Weighted Expression for each orthogroup
 T_conf_df <- all_species_df %>%
-  filter(Male.species == params$neo_species) %>%
-  group_by(Male.og) %>%
+  filter(species == params$neo_species) %>%
+  group_by(og) %>%
   mutate(med_weighted_expression=median(weighted_expression))
 
 all_species_df <- rbind(all_species_minus_T_conf_df,T_conf_df)
-write.table(all_species_df,file = "../results/all_species_df_R.txt", sep="\t",row.names = F, col.names = F)
+
+all_species_df <- all_species_df %>%
+  group_by(og,gender) %>%
+  mutate(neox_ancx = log2(median(weighted_expression[species == "T_conf"])/median(weighted_expression[species != "T_conf"])))
+all_species_df <- all_species_df[is.finite(all_species_df$neox_ancx),]
+
+write.table(all_species_df,file = "../results/all_species_df_R.txt", sep="\t",row.names = F, col.names = T)
+
+
 
 # Create a ggplot object
-Weighted <- ggplot(all_species_df,
-       aes(x=chrom_cat,
-           y=weighted_expression,
-           fill=chrom_cat))+
-  geom_boxplot()+
-  xlab("Chromosome")+
-  ylab("Weighted Scaled log2(TMM)")+
-  guides(fill=F)+
-  theme(legend.position='none')+
-  theme_minimal()
+plot_data_ancx <- groupwiseMedian(neox_ancx ~ species + gender,
+                                  data = all_species_df[all_species_df$chrom_name == "Neo-X",],
+                                  bca = FALSE,
+                                  conf = 0.95,
+                                  percentile = TRUE)
+plot_data_ancx$species_gender <- paste(plot_data_ancx$species,plot_data_ancx$gender)
+ancbalance <- ggplot(plot_data_ancx, aes(x=Median, y=species_gender,xmin=Percentile.lower,xmax=Percentile.upper, color=gender)) + 
+  # geom_boxplot() +
+  geom_point(aes(size=1))+
+  scale_colour_manual(name="",  
+                      values = c("Male"="#E69F00",
+                                 "Female" = "#0072B2"))+
+  geom_errorbarh(height = 0.01)+
+  geom_vline(aes(xintercept = -1)) +
+  geom_vline(aes(xintercept = 1)) +
+  guides(fill=FALSE) + 
+  coord_cartesian(xlim = c(-2,2))+
+  guides(size=F)+
+  xlab("log2 (Neo-X to Anc-X) ratio") +
+  ylab("Species")+
+  labs(color = "Gender")+
+  facet_wrap(~species,nrow = 5, scales="free_y", strip.position = "left")+
+  theme_minimal()+
+  theme(axis.text.y=element_blank(),
+        axis.text.x=element_text(size = 12),
+        axis.ticks.y=element_blank(),
+        strip.text.y = element_text(size = 14, angle = 180),
+        axis.title = element_text(size = 14))
 
 # Visualize the plot using plotly
-ggplotly(Weighted)
+ancbalance
+# ggplotly(ancbalance)
 ```
+
+<!-- The graph below shows the normalized, scaled and log transformed expression of X chromosome, Neo-X and the autosome. Here the weights for Anc-X are reciprocal to the distance from the common ancestor based on the in put time tree. -->
+
 
 Row
 -----------------------------------------------------------------------
 
 ### Expression Profile of Transcript in Neo-X vs Anc-X
 
-The graph below shows how the (weighted) expression of each gene/transcript/orthogroup in the Neo-X relates to the (weighted) median Anc-X expression 
-
 ```{r exp,echo=FALSE}
 
 unique_OG_all_species_df <- all_species_df %>%
-  distinct(Male.og,chrom_cat,med_weighted_expression,Male.chrom_num)
-genes_in_neo_X <- ggplot(unique_OG_all_species_df,
+  distinct(og,chrom_cat,med_weighted_expression,chrom_num)
+ggplot(unique_OG_all_species_df,
        aes(x=chrom_cat,
            y=med_weighted_expression,
-           group=Male.og,
+           group=factor(og),
            color=chrom_cat))+
   geom_line(alpha=0.2,
-            color="black")+
-  geom_point(alpha=0.2)+
+            color="black",
+            position = "stack")+
+  geom_point(alpha=0.2,
+             position = "stack")+
   xlab("Chromosome")+
-  ylab("Scaled log2(TMM)")+
+  ylab("Weighted TMM")+
   guides(color=F)+
   theme(legend.position='none')+
+  facet_wrap(~gender)+
   theme_minimal()
-ggplotly(genes_in_neo_X)
+# ggplotly()
 ```
 
+
+<!-- The graph below shows how the (weighted) expression of each gene/transcript/orthogroup in the Neo-X relates to the (weighted) median Anc-X expression  -->
 
 BUSCO  
 =======================================================================

@@ -36,7 +36,7 @@ colnames(species_rawcount) <- c(samples[,1],"id")
 one_file_for_length <- read.table(files[1], header = T, sep = "\t")
 species <- DGEList(counts = species_rawcount[,1:4], group = samples$gender)
 species <- calcNormFactors(species, method = "TMM")
-species_TMM <- as.data.frame(rpkm(species, gene.length = one_file_for_length$Length, log = TRUE, prior.count=1))
+species_TMM <- as.data.frame(rpkm(species, gene.length = one_file_for_length$Length, prior.count=1))
 species_TMM$id <- species_rawcount$id
 melted_species_TMM <- melt(species_TMM, id=c("id"))
 colnames(melted_species_TMM) <- c("id", "sample","log2(TMM)")
