@@ -401,10 +401,10 @@ rule report:
         "logs/report_log.txt"
     shell:
         """
-        # mv *transdecoder* tmp_dir
-        # mv *.cmds tmp_dir
-        # mv run* tmp_dir
-        # mv *.txt tmp_dir
+        mv *transdecoder* tmp_dir
+        mv *.cmds tmp_dir
+        mv run* tmp_dir
+        mv *.txt tmp_dir
         (Rscript -e \
         "rmarkdown::render('scripts/generate_report.Rmd',\
         params = list(neo_species='{params.neo_species}', \
