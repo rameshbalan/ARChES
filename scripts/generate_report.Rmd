@@ -10,6 +10,7 @@ params:
   tree: "data/nogaps_tree_nogaps_treeannotator_ann.trees"
   neo_species: "T_conf"
   busco_fig: "results/busco_figure.png"
+  summary_table: "results/summary_table.csv"
 ---
 
 ```{r setup, include=FALSE, warning=FALSE}
@@ -19,6 +20,7 @@ require("plotly")
 require("ape")
 require("flexdashboard")
 require("rcompanion")
+require("knitr")
 ```
 
 Dosage Balance and Compensation
@@ -258,7 +260,7 @@ ggplot(unique_OG_all_species_df,
 
 <!-- The graph below shows how the (weighted) expression of each gene/transcript/orthogroup in the Neo-X relates to the (weighted) median Anc-X expression  -->
 
-BUSCO  
+BUSCO and Summary
 =======================================================================
 
 Row
@@ -270,4 +272,14 @@ The following graphs show the before and after of the clustering methods on the 
 
 ```{r busco}
 knitr::include_graphics(params$busco_fig)
+```
+
+### Summary Table 
+
+The number of transcripts after each filtering step is shown in the following table.
+
+```{r summary,echo=FALSE}
+sum_table <- read.csv(params$summary_table, header= FALSE)
+colnames(sum_table) <- c("species","Trinity.Assembly", "After.1st.Transdecoder", "After.cd-hit", "After.2nd.Transdecoder")
+kable(sum_table)
 ```

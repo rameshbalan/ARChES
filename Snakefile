@@ -63,7 +63,9 @@ rule rename_headers:
     log:
         "logs/rename_headers_{species}_log.txt"
     shell:
-        "(sed s/TRINITY/{params.sample_name}/g {input} > {output}) 2> {log}"
+        """
+        (sed s/TRINITY/{params.sample_name}/g {input} > {output}) 2> {log}
+        """
 
 rule ref_prep:
     input:
@@ -367,10 +369,26 @@ rule plot_busco:
         (generate_plot.py -wd {params}) 2> {log}
         """
 
+rule summary_table:
+    input:
+        expand("{species}_nr95.fasta.transdecoder.cds",species=config["species"])
+    params:
+        species_name = expand("{species}",species=config["species"])
+    output:
+        summary_table="results/summary_table.csv",
+        species=expand("{species}.txt",species=config["species"])
+    log:
+        "logs/summary_table_log.txt"
+    shell:
+        """
+        bash scripts/summary_table.sh {params.species_name}
+        """
+
 rule report:
     input:
         ann_TMM=expand("results/{species}_TMM_ann.txt",species=config["species"]),
-        busco_fig='results/busco/busco_figure.png'
+        busco_fig='results/busco/busco_figure.png',
+        summary_table=os.path.abspath("results/summary_table.csv")
     params:
         tree=os.path.abspath(config["report"]["tree"]),
         busco_fig=os.path.abspath("results/busco/busco_figure.png"),
@@ -383,13 +401,15 @@ rule report:
         "logs/report_log.txt"
     shell:
         """
-        mv *transdecoder* tmp_dir
-        mv *.cmds tmp_dir
-        mv run* tmp_dir
+        # mv *transdecoder* tmp_dir
+        # mv *.cmds tmp_dir
+        # mv run* tmp_dir
+        # mv *.txt tmp_dir
         (Rscript -e \
         "rmarkdown::render('scripts/generate_report.Rmd',\
         params = list(neo_species='{params.neo_species}', \
         busco_fig='{params.busco_fig}',\
+        summary_table='{input.summary_table}',\
         tree='{params.tree}'), \
         output_file='../report.html')") 2> {log}
         """
